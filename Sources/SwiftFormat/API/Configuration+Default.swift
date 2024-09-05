@@ -41,6 +41,6 @@ extension Configuration {
     self.noAssignmentInExpressions = NoAssignmentInExpressionsConfiguration()
     self.multiElementCollectionTrailingCommas = true
     self.reflowMultilineStringLiterals = .never
-    self.allowsWhitespaceOnlyLines = false
+    self.allowWhitespaceOnlyLines = false
   }
 }

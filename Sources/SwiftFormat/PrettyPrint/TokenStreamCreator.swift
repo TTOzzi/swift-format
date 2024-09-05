@@ -3465,7 +3465,7 @@ fileprivate final class TokenStreamCreator: SyntaxVisitor {
 
       case .spaces(let n):
         guard leadingIndent == .spaces(0) else { break }
-        if config.allowsWhitespaceOnlyLines, trivia.count > index + 1, trivia[index + 1].isNewline {
+        if config.allowWhitespaceOnlyLines, trivia.count > index + 1, trivia[index + 1].isNewline {
           appendToken(.space(size: n))
           requiresNextNewline = true
         } else {

@@ -46,7 +46,7 @@ public struct Configuration: Codable, Equatable {
     case noAssignmentInExpressions
     case multiElementCollectionTrailingCommas
     case reflowMultilineStringLiterals
-    case allowsWhitespaceOnlyLines
+    case allowWhitespaceOnlyLines
   }
 
   /// A dictionary containing the default enabled/disabled states of rules, keyed by the rules'
@@ -261,7 +261,7 @@ public struct Configuration: Codable, Equatable {
 
   public var reflowMultilineStringLiterals: MultilineStringReflowBehavior
   
-  public var allowsWhitespaceOnlyLines: Bool
+  public var allowWhitespaceOnlyLines: Bool
 
   /// Creates a new `Configuration` by loading it from a configuration file.
   public init(contentsOf url: URL) throws {
@@ -358,10 +358,10 @@ public struct Configuration: Codable, Equatable {
     self.reflowMultilineStringLiterals =
       try container.decodeIfPresent(MultilineStringReflowBehavior.self, forKey: .reflowMultilineStringLiterals)
       ?? defaults.reflowMultilineStringLiterals
-    self.allowsWhitespaceOnlyLines =
+    self.allowWhitespaceOnlyLines =
       try container.decodeIfPresent(
-        Bool.self, forKey: .allowsWhitespaceOnlyLines)
-    ?? defaults.allowsWhitespaceOnlyLines
+        Bool.self, forKey: .allowWhitespaceOnlyLines)
+    ?? defaults.allowWhitespaceOnlyLines
 
     // If the `rules` key is not present at all, default it to the built-in set
     // so that the behavior is the same as if the configuration had been

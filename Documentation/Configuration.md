@@ -94,6 +94,9 @@ top-level keys and values:
 
 *  `multiElementCollectionTrailingCommas` _(boolean)_: Determines whether multi-element collection literals should have trailing commas.
     Defaults to `true`.
+    
+*  `allowWhitespaceOnlyLines` _(boolean)_: Determines whether lines containing only whitespace should be preserved. When this setting is true, lines that consist solely of whitespace will not have the whitespace removed. 
+    Defaults to `false`
 
 > TODO: Add support for enabling/disabling specific syntax transformations in
 > the pipeline.
