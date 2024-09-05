@@ -3429,7 +3429,6 @@ fileprivate final class TokenStreamCreator: SyntaxVisitor {
 
       case .newlines(let count), .carriageReturns(let count), .carriageReturnLineFeeds(let count):
         leadingIndent = .spaces(0)
-        
         guard !isStartOfFile else { break }
 
         if requiresNextNewline ||
@@ -3466,7 +3465,7 @@ fileprivate final class TokenStreamCreator: SyntaxVisitor {
 
       case .spaces(let n):
         guard leadingIndent == .spaces(0) else { break }
-        if trivia.count > index + 1, trivia[index + 1].isNewline {
+        if config.allowsWhitespaceOnlyLines, trivia.count > index + 1, trivia[index + 1].isNewline {
           appendToken(.space(size: n))
           requiresNextNewline = true
         } else {
