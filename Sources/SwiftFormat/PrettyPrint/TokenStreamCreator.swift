@@ -3428,10 +3428,6 @@ fileprivate final class TokenStreamCreator: SyntaxVisitor {
         leadingIndent = nil
 
       case .newlines(let count), .carriageReturns(let count), .carriageReturnLineFeeds(let count):
-        var previousSpaces: Int = 0
-        if case let .spaces(n) = leadingIndent {
-          previousSpaces = n
-        }
         leadingIndent = .spaces(0)
         
         guard !isStartOfFile else { break }
@@ -3439,18 +3435,8 @@ fileprivate final class TokenStreamCreator: SyntaxVisitor {
         if requiresNextNewline ||
           (config.respectsExistingLineBreaks && isDiscretionaryNewlineAllowed(before: token))
         {
-          if previousSpaces > 0 {
-            (0..<previousSpaces).forEach { _ in
-              appendToken(.verbatim(Verbatim(text: " ", indentingBehavior: .none)))
-            }
-          }
           appendNewlines(.soft(count: count, discretionary: true))
         } else {
-          if previousSpaces > 0 {
-            (0..<previousSpaces).forEach { _ in
-              appendToken(.verbatim(Verbatim(text: " ", indentingBehavior: .none)))
-            }
-          }
           // Even if discretionary line breaks are not being respected, we still respect multiple
           // line breaks in order to keep blank separator lines that the user might want.
           // TODO: It would be nice to restrict this to only allow multiple lines between statements
@@ -3480,7 +3466,12 @@ fileprivate final class TokenStreamCreator: SyntaxVisitor {
 
       case .spaces(let n):
         guard leadingIndent == .spaces(0) else { break }
-        leadingIndent = .spaces(n)
+        if trivia.count > index + 1, trivia[index + 1].isNewline {
+          appendToken(.space(size: n))
+          requiresNextNewline = true
+        } else {
+          leadingIndent = .spaces(n)
+        }
       case .tabs(let n):
         guard leadingIndent == .spaces(0) else { break }
         leadingIndent = .tabs(n)

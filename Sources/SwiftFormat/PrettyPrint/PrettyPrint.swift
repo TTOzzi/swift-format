@@ -449,7 +449,12 @@ public class PrettyPrinter {
 
     // Print out the number of spaces according to the size, and adjust spaceRemaining.
     case .space(let size, _):
-      outputBuffer.enqueueSpaces(size)
+      if outputBuffer.isAtStartOfLine {
+        let currentIndentationSpaceSize = outputBuffer.currentIndentation.indentation().count
+        outputBuffer.write(String(repeating: " ", count: size - currentIndentationSpaceSize))
+      } else {
+        outputBuffer.enqueueSpaces(size)
+      }
 
     // Print any indentation required, followed by the text content of the syntax token.
     case .syntax(let text):
