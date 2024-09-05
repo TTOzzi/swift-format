@@ -189,6 +189,41 @@ final class RespectsExistingLineBreaksTests: PrettyPrintTestCase {
       input: input, expected: expectedNotRespecting, linelength: 80,
       configuration: configuration(respectingExistingLineBreaks: false))
   }
+  
+  
+  func testtt() {
+    let input =
+      """
+      class A {
+        func foo() -> Int {
+          return 1
+        }
+                
+        func bar() -> Int {
+          return 2
+        }
+      }
+      """
+
+    let expectedRespecting =
+      """
+      class A {
+        func foo() -> Int {
+          return 1
+        }
+                
+        func bar() -> Int {
+          return 2
+        }
+      }
+      
+      """
+
+    assertPrettyPrintEqual(
+      input: input, expected: expectedRespecting, linelength: 80,
+      configuration: configuration(respectingExistingLineBreaks: true))
+  }
+
 
   /// Creates a new configuration with the given value for `respectsExistingLineBreaks` and default
   /// values for everything else.
