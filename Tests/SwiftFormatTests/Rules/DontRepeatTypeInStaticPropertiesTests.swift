@@ -36,15 +36,15 @@ final class DontRepeatTypeInStaticPropertiesTests: LintOrFormatRuleTestCase {
       }
       """,
       findings: [
-        FindingSpec("1️⃣", message: "remove the suffix 'Color' from the name of the variable 'redColor'"),
-        FindingSpec("2️⃣", message: "remove the suffix 'Color' from the name of the variable 'blueColor'"),
-        FindingSpec("3️⃣", message: "remove the suffix 'Sandwich' from the name of the variable 'bolognaSandwich'"),
-        FindingSpec("4️⃣", message: "remove the suffix 'Sandwich' from the name of the variable 'hamSandwich'"),
-        FindingSpec("5️⃣", message: "remove the suffix 'Person' from the name of the variable 'youngPerson'"),
-        FindingSpec("6️⃣", message: "remove the suffix 'Game' from the name of the variable 'basketballGame'"),
-        FindingSpec("7️⃣", message: "remove the suffix 'Game' from the name of the variable 'baseballGame'"),
-        FindingSpec("8️⃣", message: "remove the suffix 'Session' from the name of the variable 'sharedSession'"),
-        FindingSpec("9️⃣", message: "remove the suffix 'Cookie' from the name of the variable 'chocolateChipCookie'"),
+        FindingSpec("1️⃣", message: "remove 'Color' from the name of the variable 'redColor'"),
+        FindingSpec("2️⃣", message: "remove 'Color' from the name of the variable 'blueColor'"),
+        FindingSpec("3️⃣", message: "remove 'Sandwich' from the name of the variable 'bolognaSandwich'"),
+        FindingSpec("4️⃣", message: "remove 'Sandwich' from the name of the variable 'hamSandwich'"),
+        FindingSpec("5️⃣", message: "remove 'Person' from the name of the variable 'youngPerson'"),
+        FindingSpec("6️⃣", message: "remove 'Game' from the name of the variable 'basketballGame'"),
+        FindingSpec("7️⃣", message: "remove 'Game' from the name of the variable 'baseballGame'"),
+        FindingSpec("8️⃣", message: "remove 'Session' from the name of the variable 'sharedSession'"),
+        FindingSpec("9️⃣", message: "remove 'Cookie' from the name of the variable 'chocolateChipCookie'"),
       ]
     )
   }
@@ -70,7 +70,7 @@ final class DontRepeatTypeInStaticPropertiesTests: LintOrFormatRuleTestCase {
       }
       """,
       findings: [
-        FindingSpec("1️⃣", message: "remove the suffix 'Thing' from the name of the variable 'defaultThing'")
+        FindingSpec("1️⃣", message: "remove 'Thing' from the name of the variable 'defaultThing'")
       ]
     )
   }
@@ -86,9 +86,8 @@ final class DontRepeatTypeInStaticPropertiesTests: LintOrFormatRuleTestCase {
       }
       """,
       findings: [
-        FindingSpec("1️⃣", message: "remove the suffix 'Foo' from the name of the variable 'alternateFoo'")
+        FindingSpec("1️⃣", message: "remove 'Foo' from the name of the variable 'alternateFoo'")
       ]
     )
   }
-
 }
