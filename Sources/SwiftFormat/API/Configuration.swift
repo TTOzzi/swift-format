@@ -21,6 +21,13 @@ import Foundation
 /// with the previous format.
 internal let highestSupportedConfigurationVersion = 1
 
+private struct ConfigurationDecodingError: LocalizedError {
+  var errorDescription: String?
+  init(errorDescription: String) {
+    self.errorDescription = errorDescription
+  }
+}
+
 /// Holds the complete set of configured values and defaults.
 public struct Configuration: Codable, Equatable {
 
@@ -285,11 +292,9 @@ public struct Configuration: Codable, Equatable {
     // If the version number is not present, assume it is 1.
     self.version = try container.decodeIfPresent(Int.self, forKey: .version) ?? 1
     guard version <= highestSupportedConfigurationVersion else {
-      throw DecodingError.dataCorruptedError(
-        forKey: .version,
-        in: container,
-        debugDescription:
-          "This version of the formatter does not support configuration version \(version)."
+      throw ConfigurationDecodingError(
+        errorDescription:
+          "This version of the formatter does not support configuration version \(version). The highest supported version is \(highestSupportedConfigurationVersion)."
       )
     }
 
