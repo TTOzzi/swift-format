@@ -113,6 +113,12 @@ public class WhitespaceLinter {
       let userRun = userRunsIterator.next()!
       let formattedRun = formattedRunsIterator.next()!
 
+      // Print a diagnostic for unexpected Unicode characters with the highest priority.
+      if let unicodeException = UnicodeException.matchesUnicodeException(in: userRun) {
+        diagnose(.removeUnexpectedUnicode(unicodeException), category: .unexpectedUnicode, utf8Offset: userIndex)
+        return
+      }
+
       // If there was only a single whitespace run in each input, then that means there weren't any
       // newlines. Therefore, we're looking at inter-token spacing, unless the whitespace runs
       // preceded the first token in the file (i.e., offset == 0), in which case we ignore it here
@@ -126,8 +132,10 @@ public class WhitespaceLinter {
 
       while let userRun = userRunsIterator.next() {
         let possibleFormattedRun = formattedRunsIterator.next()
-
-        if runIndex < excessUserLines {
+        if let unicodeException = UnicodeException.matchesUnicodeException(in: userRun) {
+          diagnose(.removeUnexpectedUnicode(unicodeException), category: .unexpectedUnicode, utf8Offset: userIndex)
+          userIndex += userRun.count + 1
+        } else if runIndex < excessUserLines {
           // If there were excess newlines in the user input, tell the user to remove them. This
           // short-circuits the trailing whitespace check below; we don't bother telling the user
           // about trailing whitespace on a line that we're also telling them to delete.
@@ -339,20 +347,20 @@ public class WhitespaceLinter {
     startingAt offset: Int,
     in data: [UTF8.CodeUnit]
   ) -> ArraySlice<UTF8.CodeUnit> {
-    func isWhitespace(_ char: UTF8.CodeUnit) -> Bool {
-      switch char {
-      case UInt8(ascii: " "), UInt8(ascii: "\n"), UInt8(ascii: "\t"), UInt8(ascii: "\r"), /*VT*/ 0x0B, /*FF*/ 0x0C:
-        return true
+    var currentIndex = offset
+    while currentIndex < data.count {
+      switch data[currentIndex] {
+      case UInt8(ascii: " "), UInt8(ascii: "\n"), UInt8(ascii: "\t"), UInt8(ascii: "\r"),
+        /*VT*/ 0x0B, /*FF*/ 0x0C:
+        currentIndex += 1
+      case _ where UnicodeException.matchesUnicodeException(at: currentIndex, in: data) != nil:
+        let unicodeException = UnicodeException.matchesUnicodeException(at: currentIndex, in: data)!
+        currentIndex += unicodeException.utf8Bytes.count
       default:
-        return false
+        return data[offset..<currentIndex]
       }
     }
-    guard
-      let whitespaceEnd = data[offset...].firstIndex(where: { !isWhitespace($0) })
-    else {
-      return data[offset..<data.endIndex]
-    }
-    return data[offset..<whitespaceEnd]
+    return data[offset..<currentIndex]
   }
 
   /// Returns the code unit at the given index, or nil if the index is the end of the data.
@@ -409,6 +417,43 @@ public class WhitespaceLinter {
       return .homogeneous(onlyIndent)
     }
     return .heterogeneous(indents)
+  }
+}
+
+/// A collection of unexpected Unicode characters that cannot be processed normally.
+private enum UnicodeException: CaseIterable {
+  case u2028  // U+2028 LINE SEPARATOR
+  case u2029  // U+2029 PARAGRAPH SEPARATOR
+
+  /// Returns the UTF-8 byte sequence corresponding to the Unicode exception.
+  var utf8Bytes: [UTF8.CodeUnit] {
+    switch self {
+    case .u2028:
+      return [0xE2, 0x80, 0xA8]
+    case .u2029:
+      return [0xE2, 0x80, 0xA9]
+    }
+  }
+
+  /// Checks if the given index in `data` matches any known Unicode exception pattern.
+  static func matchesUnicodeException(at index: Int, in data: [UTF8.CodeUnit]) -> UnicodeException? {
+    for exception in UnicodeException.allCases {
+      let bytes = exception.utf8Bytes
+      if index + bytes.count <= data.count, data[index..<index + bytes.count].elementsEqual(bytes) {
+        return exception
+      }
+    }
+    return nil
+  }
+
+  /// Checks if the given `run` contains any known Unicode exception pattern.
+  static func matchesUnicodeException(in run: ArraySlice<UTF8.CodeUnit>) -> UnicodeException? {
+    for exception in UnicodeException.allCases {
+      if run.contains(exception.utf8Bytes) {
+        return exception
+      }
+    }
+    return nil
   }
 }
 
@@ -513,4 +558,8 @@ extension Finding.Message {
   }
 
   fileprivate static let lineLengthError: Finding.Message = "line is too long"
+
+  fileprivate static func removeUnexpectedUnicode(_ unicode: UnicodeException) -> Finding.Message {
+    return "remove unexpected unicode character \\\(unicode)"
+  }
 }

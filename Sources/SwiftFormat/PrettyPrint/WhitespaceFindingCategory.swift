@@ -33,6 +33,9 @@ enum WhitespaceFindingCategory: FindingCategorizing {
   /// Findings related to the length of a line.
   case lineLength
 
+  /// Findings related to the presence of disallowed or unexpected Unicode whitespace characters.
+  case unexpectedUnicode
+
   var description: String {
     switch self {
     case .trailingWhitespace: return "TrailingWhitespace"
@@ -42,6 +45,7 @@ enum WhitespaceFindingCategory: FindingCategorizing {
     case .removeLine: return "RemoveLine"
     case .addLines: return "AddLines"
     case .lineLength: return "LineLength"
+    case .unexpectedUnicode: return "UnexpectedUnicode"
     }
   }
 }

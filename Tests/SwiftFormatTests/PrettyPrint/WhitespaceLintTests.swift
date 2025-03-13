@@ -255,4 +255,30 @@ final class WhitespaceLintTests: WhitespaceTestCase {
       ]
     )
   }
+
+  func testUnexpectedUnicodeCharacter() {
+    assertWhitespaceLint(
+      input: """
+        // Hello World1️⃣\u{2028}
+        // Hello2️⃣\u{2028}World
+        // Hello World3️⃣\u{2029}\u{2029}\u{2029}
+        // Hello World4️⃣    \u{2028}
+        let a5️⃣\u{2028}= 1
+        """,
+      expected: """
+        // Hello World
+        // Hello World
+        // Hello World
+        // Hello World
+        let a = 1
+        """,
+      findings: [
+        FindingSpec("1️⃣", message: "remove unexpected unicode character \\u2028"),
+        FindingSpec("2️⃣", message: "remove unexpected unicode character \\u2028"),
+        FindingSpec("3️⃣", message: "remove unexpected unicode character \\u2029"),
+        FindingSpec("4️⃣", message: "remove unexpected unicode character \\u2028"),
+        FindingSpec("5️⃣", message: "remove unexpected unicode character \\u2028"),
+      ]
+    )
+  }
 }
