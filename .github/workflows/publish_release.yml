@@ -23,17 +23,6 @@ on:
         required: true
 
 jobs:
-  check_triggering_actor:
-    name: Check user is allowed to create release
-    # Only a single user should be allowed to create releases to avoid two people triggering the creation of a release
-    # at the same time. If the release manager changes between users, update this condition.
-    runs-on: ubuntu-latest
-    steps:
-      - run: |
-          if [[ "${{ github.triggering_actor }}" != "ahoppen" ]]; then
-            echo "${{ github.triggering_actor }} is not allowed to create a release"
-            exit 1
-          fi
   create_release_commits:
     name: Create release commits
     runs-on: ubuntu-latest
@@ -66,7 +55,27 @@ jobs:
           echo "Using swift-format version: $SWIFT_FORMAT_VERSION"
           echo "swift_format_version=$SWIFT_FORMAT_VERSION" >> "$GITHUB_OUTPUT"
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4        
+      - name: Create version commit if version changed
+        run: |
+          # Without this, we can't perform git operations in GitHub actions.
+          git config --global --add safe.directory "$(realpath .)"
+          git config --local user.name 'swift-ci'
+          git config --local user.email 'swift-ci@users.noreply.github.com'
+
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          BASE_COMMIT=$(git rev-parse HEAD)
+
+          sed -E -i "s#print\(\".*\"\)#print\(\"${{ steps.swift_format_version.outputs.swift_format_version }}\"\)#" Sources/swift-format/PrintVersion.swift
+
+          if ! git diff --quiet Sources/swift-format/PrintVersion.swift; then
+            echo "Detected change in PrintVersion.swift — committing and pushing"
+            git add Sources/swift-format/PrintVersion.swift
+            git commit -m "Change version to ${{ steps.swift_format_version.outputs.swift_format_version }}"
+            git push origin HEAD:$BRANCH_NAME
+          else
+            echo "No changes in PrintVersion.swift — skipping commit/push"
+          fi
       - name: Create release commits
         id: create_release_commits
         run: |
@@ -80,10 +89,6 @@ jobs:
           sed -E -i "s#branch: \"(main|release/[0-9]+\.[0-9]+)\"#from: \"${{ steps.swift_syntax_tag.outputs.swift_syntax_tag }}\"#" Package.swift
           git add Package.swift
           git commit -m "Change swift-syntax dependency to ${{ steps.swift_syntax_tag.outputs.swift_syntax_tag }}"
-
-          sed -E -i "s#print\(\".*\"\)#print\(\"${{ steps.swift_format_version.outputs.swift_format_version }}\"\)#" Sources/swift-format/PrintVersion.swift
-          git add Sources/swift-format/PrintVersion.swift
-          git commit -m "Change version to ${{ steps.swift_format_version.outputs.swift_format_version }}"
 
           {
             echo 'release_commit_patch<<EOF'
@@ -121,7 +126,7 @@ jobs:
   create_tag:
     name: Create Tag
     runs-on: ubuntu-latest
-    needs: [check_triggering_actor, test, create_release_commits]
+    needs: [test, create_release_commits]
     permissions:
       contents: write
     steps:
